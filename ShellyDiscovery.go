@@ -1,3 +1,14 @@
+/**
+ * @package   ShellyDiscovery
+ * @copyright Thorsten Eurich
+ * @license   GNU Affero General Public License (https://www.gnu.org/licenses/agpl-3.0.de.html)
+ *
+ * @todo lots of documentation
+ *
+ *
+ * mDNS discovery for Shelly IoT-Devices
+ */
+
 package main
 
 import (
