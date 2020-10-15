@@ -26,6 +26,7 @@ import (
 
 	"github.com/grandcat/zeroconf"
 	"github.com/jasonlvhit/gocron"
+	"text/tabwriter"
 )
 
 type DeviceStatus struct {
@@ -164,11 +165,12 @@ type DeviceSettings struct {
 }
 
 var (
-	service  = flag.String("service", "_http._tcp", "Set the service category to look for devices.")
-	domain   = flag.String("domain", "local", "Set the search domain. For local networks, default is fine.")
-	waitTime = flag.Int("wait", 90, "Duration in [s] to run discovery.")
-	user     = flag.String("user", "admin", "Username for yor Shelly devices.")
-	password = flag.String("password", "admin", "Password your the Shelly devices.")
+	service      = flag.String("service", "_http._tcp", "Set the service category to look for devices.")
+	domain       = flag.String("domain", "local", "Set the search domain. For local networks, default is fine.")
+	waitTime     = flag.Int("wait", 90, "Duration in [s] to run discovery.")
+	user         = flag.String("user", "admin", "Username for yor Shelly devices.")
+	password     = flag.String("password", "admin", "Password your the Shelly devices.")
+	outputFormat = flag.String("output", "wide", "Sets the output format. Supported is wide|csv")
 )
 
 func discoverShellys() {
@@ -181,7 +183,16 @@ func discoverShellys() {
 	}
 
 	entries := make(chan *zeroconf.ServiceEntry)
-	fmt.Println("\"Hostname\";\"Url\";\"RSSI\";\"Temperature\";\"Network\";\"IP\";\"Subnet\";\"Gateway\"")
+
+	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+
+	switch *outputFormat {
+	case "wide":
+		fmt.Fprintln(writer, "Hostname\tUrl\tRSSI\tTemperature\tNetwork\tIP\tSubnet\tGateway")
+	case "csv":
+		fmt.Println("Hostname;Url;RSSI;Temperature;Network;IP;Subnet;Gateway")
+	}
+
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
 
@@ -218,8 +229,15 @@ func discoverShellys() {
 				if temperature == "0.00" {
 					temperature = ""
 				}
-				fmt.Println("\"" + hostname[0] + "\",\"http://" + ipstring + "\";\"" + rssi + "\";\"" + temperature + "\";\"" + nwtype + "\";\"\t" + ipstring + "\";\"" + shsn + "\";\"" + gateway + "\"")
+
+				switch *outputFormat {
+				case "wide":
+					fmt.Fprintln(writer, hostname[0]+"\t"+"http://"+ipstring+"\t"+rssi+"\t"+temperature+"\t"+nwtype+"\t"+ipstring+"\t"+shsn+"\t"+gateway)
+				case "csv":
+					fmt.Println(hostname[0] + ";http://" + ipstring + ";" + rssi + ";" + temperature + ";" + nwtype + ";" + ipstring + ";" + shsn + ";" + gateway)
+				}
 			}
+			writer.Flush()
 		}
 		fmt.Println("")
 		log.Println("mDNS Discovery finished.")
