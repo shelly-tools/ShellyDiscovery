@@ -208,10 +208,11 @@ func discoverShellys() {
 				reqset, _ := http.NewRequest("GET", settingsurl, nil)
 				resset, _ := http.DefaultClient.Do(reqset)
 
-				defer resset.Body.Close()
-				defer res.Body.Close()
 				body, _ := ioutil.ReadAll(res.Body)
 				bodyset, _ := ioutil.ReadAll(resset.Body)
+
+				resset.Body.Close()
+				res.Body.Close()
 
 				//fmt.Println(string(bodyset))
 				var devicestatus DeviceStatus
