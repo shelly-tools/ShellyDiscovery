@@ -24,9 +24,10 @@ import (
 	"strings"
 	"time"
 
+	"text/tabwriter"
+
 	"github.com/grandcat/zeroconf"
 	"github.com/jasonlvhit/gocron"
-	"text/tabwriter"
 )
 
 type DeviceStatus struct {
@@ -196,7 +197,10 @@ func discoverShellys() {
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
 
-			ipstring := entry.AddrIPv4[0].String()
+			ipstring := ""
+			if len(entry.AddrIPv4) > 0 {
+				ipstring = entry.AddrIPv4[0].String()
+			}
 			hostname := strings.Split(entry.HostName, ".")
 
 			if strings.Contains(hostname[0], "shelly") {
